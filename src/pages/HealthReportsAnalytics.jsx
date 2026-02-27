@@ -1,8 +1,22 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import HeaderActions from '../components/HeaderActions';
 
 const HealthReportsAnalytics = () => {
+    const [filter, setFilter] = useState('7'); // days: 7,30,180,custom
+    const [metrics, setMetrics] = useState({
+        bp: { systolic: 118, diastolic: 79, change: -2 },
+        bmi: { value: 22.5, status: 'Healthy' },
+        glucose: { value: 94, change: 4 }
+    });
+    const handleShare = () => {
+        navigator.clipboard.writeText('Check out my health report on Pocket Doctor!');
+        alert('Report link copied to clipboard!');
+    };
+    const handleGeneratePDF = () => {
+        // Placeholder: In real app, integrate with PDF library
+        alert('PDF generation is not implemented in this demo.');
+    };
     return (
         <>
             <div className="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display">
@@ -43,13 +57,31 @@ const HealthReportsAnalytics = () => {
                                     <div className="flex flex-col gap-1">
                                         <h1 className="text-slate-900 dark:text-white text-4xl font-black leading-tight tracking-tight">Health Reports &amp; Analytics</h1>
                                         <p className="text-slate-500 dark:text-slate-400 text-base font-normal">Deep-dive analysis into your physiological metrics with AI-driven summaries.</p>
+                                        {/* Display dynamic metrics */}
+                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
+                                            <div className="bg-white dark:bg-slate-900 p-4 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800">
+                                                <p className="text-sm font-medium text-slate-500">Avg Blood Pressure</p>
+                                                <p className="text-2xl font-bold text-slate-900 dark:text-white">{metrics.bp.systolic}/{metrics.bp.diastolic}<span className="text-sm font-normal text-slate-400"> mmHg</span></p>
+                                                <p className="text-xs text-emerald-500 flex items-center"><span className="material-symbols-outlined text-sm">arrow_downward</span> {metrics.bp.change}% from last month</p>
+                                            </div>
+                                            <div className="bg-white dark:bg-slate-900 p-4 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800">
+                                                <p className="text-sm font-medium text-slate-500">BMI Index</p>
+                                                <p className="text-2xl font-bold text-slate-900 dark:text-white">{metrics.bmi.value}<span className="text-sm font-normal text-slate-400"> {metrics.bmi.status}</span></p>
+                                                <p className="text-xs text-slate-400 flex items-center"><span className="material-symbols-outlined text-sm">remove</span> Stable</p>
+                                            </div>
+                                            <div className="bg-white dark:bg-slate-900 p-4 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800">
+                                                <p className="text-sm font-medium text-slate-500">Avg Glucose</p>
+                                                <p className="text-2xl font-bold text-slate-900 dark:text-white">{metrics.glucose.value}<span className="text-sm font-normal text-slate-400"> mg/dL</span></p>
+                                                <p className="text-xs text-rose-500 flex items-center"><span className="material-symbols-outlined text-sm">arrow_upward</span> +{metrics.glucose.change}% from last month</p>
+                                            </div>
+                                        </div>
                                     </div>
                                     <div className="flex gap-3">
-                                        <button className="flex items-center gap-2 px-4 py-2 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-lg font-bold text-sm hover:bg-slate-200 dark:hover:bg-slate-700">
+                                        <button onClick={handleShare} className="flex items-center gap-2 px-4 py-2 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-lg font-bold text-sm hover:bg-slate-200 dark:hover:bg-slate-700">
                                             <span className="material-symbols-outlined">share</span>
                                             Share with Doctor
                                         </button>
-                                        <button className="flex items-center gap-2 px-6 py-2 bg-primary text-white rounded-lg font-bold text-sm hover:bg-primary/90 shadow-lg shadow-primary/20">
+                                        <button onClick={handleGeneratePDF} className="flex items-center gap-2 px-6 py-2 bg-primary text-white rounded-lg font-bold text-sm hover:bg-primary/90 shadow-lg shadow-primary/20">
                                             <span className="material-symbols-outlined">picture_as_pdf</span>
                                             Generate PDF Report
                                         </button>
@@ -57,22 +89,14 @@ const HealthReportsAnalytics = () => {
                                 </div>
                                 {/* Filters Bar */}
                                 <div className="flex gap-3 mb-8 overflow-x-auto pb-2 no-scrollbar">
-                                    <button className="flex h-10 shrink-0 items-center justify-center gap-x-2 rounded-lg bg-primary text-white px-4 text-sm font-semibold">
-                                        Last 7 Days
-                                        <span className="material-symbols-outlined text-[18px]">expand_more</span>
-                                    </button>
-                                    <button className="flex h-10 shrink-0 items-center justify-center gap-x-2 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-4 text-sm font-medium hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
-                                        Last 30 Days
-                                        <span className="material-symbols-outlined text-[18px]">expand_more</span>
-                                    </button>
-                                    <button className="flex h-10 shrink-0 items-center justify-center gap-x-2 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-4 text-sm font-medium hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
-                                        Last 6 Months
-                                        <span className="material-symbols-outlined text-[18px]">expand_more</span>
-                                    </button>
-                                    <button className="flex h-10 shrink-0 items-center justify-center gap-x-2 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-4 text-sm font-medium hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
-                                        Custom Range
-                                        <span className="material-symbols-outlined text-[18px]">calendar_today</span>
-                                    </button>
+                                    <button onClick={() => setFilter('7')} className={`flex h-10 shrink-0 items-center justify-center gap-x-2 rounded-lg ${filter === '7' ? 'bg-primary text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300'} px-4 text-sm font-semibold`}
+                                    >Last 7 Days<span className="material-symbols-outlined text-[18px]">expand_more</span></button>
+                                    <button onClick={() => setFilter('30')} className={`flex h-10 shrink-0 items-center justify-center gap-x-2 rounded-lg ${filter === '30' ? 'bg-primary text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300'} px-4 text-sm font-medium`}
+                                    >Last 30 Days<span className="material-symbols-outlined text-[18px]">expand_more</span></button>
+                                    <button onClick={() => setFilter('180')} className={`flex h-10 shrink-0 items-center justify-center gap-x-2 rounded-lg ${filter === '180' ? 'bg-primary text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300'} px-4 text-sm font-medium`}
+                                    >Last 6 Months<span className="material-symbols-outlined text-[18px]">expand_more</span></button>
+                                    <button onClick={() => setFilter('custom')} className={`flex h-10 shrink-0 items-center justify-center gap-x-2 rounded-lg ${filter === 'custom' ? 'bg-primary text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300'} px-4 text-sm font-medium`}
+                                    >Custom Range<span className="material-symbols-outlined text-[18px]">calendar_today</span></button>
                                 </div>
                                 {/* Metric Cards */}
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
