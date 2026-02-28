@@ -118,7 +118,7 @@ const FloatingChatbotProvider = ({ children }) => {
             const langMap = { 'en-US': 'English', 'hi-IN': 'Hindi', 'bn-IN': 'Bengali' };
             const languageName = langMap[currentLanguage] || 'English';
 
-            const prompt = `You are the ArogyaSetu AI Health Assistant. You must ONLY answer questions related to health, wellness, first-aid, or medical symptoms. Provide highly concise, easy-to-understand home remedies or simple solutions that a person can easily do themselves. Do not prescribe complex prescription medications. If the user asks a question completely unrelated to health or the ArogyaSetu app, politely refuse to answer. Respond natively in ${languageName}. The user says: ${userMessage.content}`;
+            const prompt = `You are the ArogyaSetu AI Health Assistant. You must keep your answers extremely short and concise. ONLY answer questions related to the ArogyaSetu project itself, health, wellness, first-aid, or medical symptoms. If the user asks any other questions unrelated to these topics, firmly but politely refuse to answer. Do not prescribe complex medications. Respond natively in ${languageName}. The user says: ${userMessage.content}`;
 
             const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
                 method: 'POST',
