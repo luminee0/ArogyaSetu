@@ -1,7 +1,25 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 const LoginPage = () => {
+    const [email, setEmail] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
+    const [error, setError] = useState('');
+    const { login } = useAuth();
+    const navigate = useNavigate();
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        setError('');
+        const result = login(email);
+        if (result.success) {
+            navigate('/main-wellness-dashboard');
+        } else {
+            setError(result.error);
+        }
+    };
+
     return (
         <div className="flex h-screen w-full bg-white font-display text-slate-900">
             {/* Left Side (Blue Branding) */}
@@ -64,13 +82,21 @@ const LoginPage = () => {
                     </div>
 
                     {/* Form */}
-                    <form className="space-y-5" onSubmit={(e) => { e.preventDefault(); window.location.href = '/'; }}>
+                    {error && (
+                        <div className="mb-4 px-4 py-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-600 font-medium flex items-center gap-2">
+                            <span className="material-symbols-outlined text-base">error</span>
+                            {error}
+                        </div>
+                    )}
+                    <form className="space-y-5" onSubmit={handleSubmit}>
                         <div>
                             <label className="block text-xs font-bold mb-2 text-slate-700">Email Address</label>
                             <input
                                 type="email"
                                 className="w-full bg-white border border-slate-200 rounded-lg px-4 py-3 text-sm focus:ring-primary focus:border-primary transition-colors"
                                 placeholder="name@example.com"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
                                 required
                             />
                         </div>
@@ -81,13 +107,13 @@ const LoginPage = () => {
                             </div>
                             <div className="relative">
                                 <input
-                                    type="password"
+                                    type={showPassword ? 'text' : 'password'}
                                     className="w-full bg-white border border-slate-200 rounded-lg pr-10 pl-4 py-3 text-sm focus:ring-primary focus:border-primary transition-colors tracking-widest"
                                     placeholder="••••••••"
                                     required
                                 />
-                                <button type="button" className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
-                                    <span className="material-symbols-outlined text-sm">visibility</span>
+                                <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+                                    <span className="material-symbols-outlined text-sm">{showPassword ? 'visibility_off' : 'visibility'}</span>
                                 </button>
                             </div>
                         </div>

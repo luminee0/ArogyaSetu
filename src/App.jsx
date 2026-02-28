@@ -1,5 +1,6 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
+import { AuthProvider } from './context/AuthContext';
 import LandingPage from './pages/LandingPage';
 import AiSymptomCheckerInterface from './pages/AiSymptomCheckerInterface';
 import AiXRayAnalysisTool from './pages/AiXRayAnalysisTool';
@@ -27,6 +28,7 @@ const LayoutContainer = ({ children }) => {
 function App() {
   return (
     <Router>
+      <AuthProvider>
       <LayoutContainer>
         <Routes>
           <Route path="/" element={<LandingPage />} />
@@ -44,6 +46,7 @@ function App() {
           <Route path="/my-health" element={<MyHealthOverview />} />
         </Routes>
       </LayoutContainer>
+      </AuthProvider>
     </Router>
   );
 }

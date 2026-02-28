@@ -1,8 +1,10 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 const LandingPage = () => {
   const navigate = useNavigate();
+  const { user, logout } = useAuth();
 
   const features = [
     {
@@ -104,18 +106,43 @@ const LandingPage = () => {
           </div>
 
           <div className="flex items-center gap-3">
-            <button
-              onClick={() => navigate('/login')}
-              className="text-sm font-semibold text-slate-700 hover:text-blue-600 transition-colors px-4 py-2"
-            >
-              Sign in
-            </button>
-            <button
-              onClick={() => navigate('/create-account')}
-              className="text-sm font-semibold text-white bg-slate-900 hover:bg-slate-800 rounded-full px-5 py-2.5 transition-colors shadow-sm"
-            >
-              Get Started
-            </button>
+            {user ? (
+              <>
+                <button
+                  onClick={() => navigate('/main-wellness-dashboard')}
+                  className="text-sm font-semibold text-slate-700 hover:text-blue-600 transition-colors px-4 py-2"
+                >
+                  Dashboard
+                </button>
+                <div className="flex items-center gap-2">
+                  <div className="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center text-white text-xs font-bold">
+                    {user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
+                  </div>
+                  <span className="text-sm font-semibold text-slate-700 hidden sm:inline">{user.name}</span>
+                </div>
+                <button
+                  onClick={() => { logout(); }}
+                  className="text-sm font-semibold text-slate-500 hover:text-red-600 transition-colors px-3 py-2"
+                >
+                  Sign out
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  onClick={() => navigate('/login')}
+                  className="text-sm font-semibold text-slate-700 hover:text-blue-600 transition-colors px-4 py-2"
+                >
+                  Sign in
+                </button>
+                <button
+                  onClick={() => navigate('/create-account')}
+                  className="text-sm font-semibold text-white bg-slate-900 hover:bg-slate-800 rounded-full px-5 py-2.5 transition-colors shadow-sm"
+                >
+                  Get Started
+                </button>
+              </>
+            )}
           </div>
         </div>
       </nav>
@@ -157,13 +184,7 @@ const LandingPage = () => {
                 Start for Free
                 <span className="material-symbols-outlined text-lg group-hover:translate-x-0.5 transition-transform">arrow_forward</span>
               </button>
-              <button
-                onClick={() => navigate('/main-wellness-dashboard')}
-                className="w-full sm:w-auto flex items-center justify-center gap-2 bg-white hover:bg-slate-50 text-slate-700 font-semibold rounded-full px-8 py-3.5 border border-slate-200 hover:border-slate-300 transition-all duration-300"
-              >
-                <span className="material-symbols-outlined text-lg text-blue-500">play_circle</span>
-                View Dashboard
-              </button>
+
             </div>
           </div>
         </div>

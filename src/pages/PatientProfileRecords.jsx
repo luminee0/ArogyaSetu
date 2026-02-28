@@ -1,9 +1,32 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import HeaderActions from '../components/HeaderActions';
+import { useAuth } from '../context/AuthContext';
 
 const PatientProfileRecords = () => {
     const [isEditing, setIsEditing] = useState(false);
+    const { user } = useAuth();
+
+    // Helper to format DOB
+    const formatDob = (dob) => {
+        if (!dob) return 'Not provided';
+        const d = new Date(dob);
+        const options = { year: 'numeric', month: 'long', day: 'numeric' };
+        const age = Math.floor((Date.now() - d.getTime()) / (365.25 * 24 * 60 * 60 * 1000));
+        return `${d.toLocaleDateString('en-US', options)} (${age} years)`;
+    };
+
+    const formatGender = (g) => {
+        if (!g) return 'Not provided';
+        return g.charAt(0).toUpperCase() + g.slice(1).replace('-', ' ');
+    };
+
+    const getAllergyTags = (str) => {
+        if (!str || !str.trim()) return [];
+        return str.split(',').map(s => s.trim()).filter(Boolean);
+    };
+
+    const initials = user?.name ? user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : 'U';
 
     const OverviewView = () => (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -13,12 +36,12 @@ const PatientProfileRecords = () => {
                 <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-8 shadow-sm">
                     <div className="flex justify-between items-start mb-8">
                         <div className="flex items-center gap-6">
-                            <div className="size-20 rounded-2xl bg-slate-200 overflow-hidden shadow-inner border border-slate-200">
-                                <img src="https://ui-avatars.com/api/?name=Alex+Johnson&background=random&size=128" alt="Profile" className="w-full h-full object-cover" />
+                            <div className="size-20 rounded-2xl bg-blue-600 overflow-hidden shadow-inner border border-slate-200 flex items-center justify-center text-white text-2xl font-black">
+                                {initials}
                             </div>
                             <div>
                                 <div className="flex items-center gap-3">
-                                    <h2 className="text-2xl font-black text-slate-900 dark:text-white mb-1 tracking-tight">Alex Johnson</h2>
+                                    <h2 className="text-2xl font-black text-slate-900 dark:text-white mb-1 tracking-tight">{user?.name || 'User'}</h2>
                                     <span className="px-2 py-0.5 bg-blue-100 text-blue-700 font-bold text-[10px] rounded-full uppercase tracking-wider">Pro Member</span>
                                 </div>
                                 <div className="flex items-center gap-3 mt-2 text-xs font-bold text-slate-500">
@@ -26,7 +49,7 @@ const PatientProfileRecords = () => {
                                     <span>•</span>
                                     <span className="flex items-center gap-1 text-indigo-600"><span className="material-symbols-outlined text-[14px]">psychology</span> AI Health Enabled</span>
                                 </div>
-                                <p className="text-sm text-slate-500 mt-2 font-medium flex items-center gap-1"><span className="material-symbols-outlined text-sm">calendar_month</span> Member since January 2022</p>
+                                <p className="text-sm text-slate-500 mt-2 font-medium flex items-center gap-1"><span className="material-symbols-outlined text-sm">calendar_month</span> Member since {user?.createdAt ? new Date(user.createdAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : 'Recently'}</p>
                             </div>
                         </div>
                         <div className="flex gap-3">
@@ -47,23 +70,19 @@ const PatientProfileRecords = () => {
                         <div className="grid grid-cols-2 gap-y-6 gap-x-4">
                             <div>
                                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Date of Birth</p>
-                                <p className="font-semibold text-sm">May 15, 1990 (34 years)</p>
+                                <p className="font-semibold text-sm">{formatDob(user?.dob)}</p>
                             </div>
                             <div>
                                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Gender</p>
-                                <p className="font-semibold text-sm">Non-binary</p>
+                                <p className="font-semibold text-sm">{formatGender(user?.gender)}</p>
                             </div>
                             <div>
                                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Email Address</p>
-                                <p className="font-semibold text-sm">alex.j@example.com</p>
+                                <p className="font-semibold text-sm">{user?.email || 'Not provided'}</p>
                             </div>
                             <div>
                                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Phone Number</p>
-                                <p className="font-semibold text-sm">+1 (555) 0123-4567</p>
-                            </div>
-                            <div className="col-span-2">
-                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Residential Address</p>
-                                <p className="font-semibold text-sm">123 Wellness Way, San Francisco, CA 94103</p>
+                                <p className="font-semibold text-sm">{user?.phone || 'Not provided'}</p>
                             </div>
                         </div>
                     </div>
@@ -84,24 +103,41 @@ const PatientProfileRecords = () => {
                     <div className="grid grid-cols-3 gap-6 mb-8">
                         <div>
                             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Blood Type</p>
-                            <p className="text-2xl font-black text-slate-900">O-Positive</p>
+                            <p className="text-2xl font-black text-slate-900">{user?.bloodType || '—'}</p>
                         </div>
                         <div>
                             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Height</p>
-                            <p className="text-2xl font-black text-slate-900">178 cm</p>
+                            <p className="text-2xl font-black text-slate-900">{user?.height ? `${user.height} cm` : '—'}</p>
                         </div>
                         <div>
                             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Weight</p>
-                            <p className="text-2xl font-black text-slate-900">72 kg</p>
+                            <p className="text-2xl font-black text-slate-900">{user?.weight ? `${user.weight} kg` : '—'}</p>
                         </div>
                     </div>
 
                     <div className="mb-8">
                         <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Known Allergies</p>
-                        <div className="flex gap-2">
-                            <span className="px-3 py-1 bg-red-50 border border-red-100 text-red-700 font-bold text-xs rounded-lg">Peanuts</span>
-                            <span className="px-3 py-1 bg-red-50 border border-red-100 text-red-700 font-bold text-xs rounded-lg">Penicillin</span>
-                            <span className="px-3 py-1 bg-slate-50 border border-slate-200 text-slate-500 font-medium text-xs rounded-lg">No other known allergies</span>
+                        <div className="flex flex-wrap gap-2">
+                            {getAllergyTags(user?.allergies).length > 0 ? (
+                                getAllergyTags(user.allergies).map((a, i) => (
+                                    <span key={i} className="px-3 py-1 bg-red-50 border border-red-100 text-red-700 font-bold text-xs rounded-lg">{a}</span>
+                                ))
+                            ) : (
+                                <span className="px-3 py-1 bg-slate-50 border border-slate-200 text-slate-500 font-medium text-xs rounded-lg">No known allergies</span>
+                            )}
+                        </div>
+                    </div>
+
+                    <div className="mb-8">
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Medical Conditions</p>
+                        <div className="flex flex-wrap gap-2">
+                            {getAllergyTags(user?.conditions).length > 0 ? (
+                                getAllergyTags(user.conditions).map((c, i) => (
+                                    <span key={i} className="px-3 py-1 bg-amber-50 border border-amber-100 text-amber-700 font-bold text-xs rounded-lg">{c}</span>
+                                ))
+                            ) : (
+                                <span className="px-3 py-1 bg-slate-50 border border-slate-200 text-slate-500 font-medium text-xs rounded-lg">No known conditions</span>
+                            )}
                         </div>
                     </div>
 
@@ -227,16 +263,16 @@ const PatientProfileRecords = () => {
             <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
                 <div className="flex items-center gap-6 mb-6">
                     <div className="relative">
-                        <div className="w-20 h-20 rounded-2xl overflow-hidden border-2 border-slate-200">
-                            <img src="https://ui-avatars.com/api/?name=Alex+Johnson&background=random&size=128" alt="Profile" className="w-full h-full object-cover" />
+                        <div className="w-20 h-20 rounded-2xl overflow-hidden border-2 border-slate-200 bg-blue-600 flex items-center justify-center text-white text-2xl font-black">
+                            {initials}
                         </div>
                         <div className="absolute -bottom-2 -right-2 w-6 h-6 bg-blue-600 rounded-full text-white flex items-center justify-center border-2 border-white shadow-sm">
                             <span className="material-symbols-outlined text-[14px]">add_a_photo</span>
                         </div>
                     </div>
                     <div>
-                        <h2 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-500">Alex Johnson</h2>
-                        <p className="text-xs font-medium text-slate-400 mb-1">Member since January 2024</p>
+                        <h2 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-500">{user?.name || 'User'}</h2>
+                        <p className="text-xs font-medium text-slate-400 mb-1">Member since {user?.createdAt ? new Date(user.createdAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : 'Recently'}</p>
                         <p className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest flex items-center gap-1"><span className="material-symbols-outlined text-[14px]">verified</span> Verified Identity</p>
                     </div>
                 </div>
@@ -255,26 +291,26 @@ const PatientProfileRecords = () => {
                         <div className="space-y-4">
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1">First Name</label>
-                                    <input type="text" defaultValue="Alex" className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-semibold focus:ring-blue-500 focus:border-blue-500" />
+                                    <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1">Full Name</label>
+                                    <input type="text" defaultValue={user?.name || ''} className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-semibold focus:ring-blue-500 focus:border-blue-500" />
                                 </div>
                                 <div>
-                                    <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1">Last Name</label>
-                                    <input type="text" defaultValue="Johnson" className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-semibold focus:ring-blue-500 focus:border-blue-500" />
+                                    <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1">Phone Number</label>
+                                    <input type="text" defaultValue={user?.phone || ''} className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-semibold focus:ring-blue-500 focus:border-blue-500" />
                                 </div>
                             </div>
                             <div>
                                 <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1">Email Address</label>
-                                <input type="email" defaultValue="alex.johnson@email.com" className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-semibold focus:ring-blue-500 focus:border-blue-500" />
+                                <input type="email" defaultValue={user?.email || ''} className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-semibold focus:ring-blue-500 focus:border-blue-500" />
                             </div>
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1">Phone Number</label>
-                                    <input type="text" defaultValue="+1 (555) 000-1234" className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-semibold focus:ring-blue-500 focus:border-blue-500" />
+                                    <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1">Gender</label>
+                                    <input type="text" defaultValue={formatGender(user?.gender)} className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-semibold focus:ring-blue-500 focus:border-blue-500" />
                                 </div>
                                 <div>
                                     <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1">Date of Birth</label>
-                                    <input type="text" defaultValue="06/15/1992" className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-semibold focus:ring-blue-500 focus:border-blue-500" />
+                                    <input type="date" defaultValue={user?.dob || ''} className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-semibold focus:ring-blue-500 focus:border-blue-500" />
                                 </div>
                             </div>
                         </div>
@@ -289,31 +325,37 @@ const PatientProfileRecords = () => {
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1">Blood Type</label>
-                                    <select className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-semibold focus:ring-red-500 focus:border-red-500">
-                                        <option>O+</option>
-                                        <option>A+</option>
-                                        <option>B+</option>
-                                        <option>AB+</option>
+                                    <select defaultValue={user?.bloodType || ''} className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-semibold focus:ring-red-500 focus:border-red-500">
+                                        <option value="">Select</option>
+                                        <option value="A+">A+</option>
+                                        <option value="A-">A-</option>
+                                        <option value="B+">B+</option>
+                                        <option value="B-">B-</option>
+                                        <option value="AB+">AB+</option>
+                                        <option value="AB-">AB-</option>
+                                        <option value="O+">O+</option>
+                                        <option value="O-">O-</option>
                                     </select>
                                 </div>
                                 <div>
                                     <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1">Height (cm)</label>
-                                    <input type="number" defaultValue="182" className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-semibold focus:ring-red-500 focus:border-red-500" />
+                                    <input type="number" defaultValue={user?.height || ''} className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-semibold focus:ring-red-500 focus:border-red-500" />
                                 </div>
+                            </div>
+
+                            <div>
+                                <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1">Weight (kg)</label>
+                                <input type="number" defaultValue={user?.weight || ''} className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-semibold focus:ring-red-500 focus:border-red-500" />
                             </div>
 
                             <div>
                                 <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2">Known Allergies</label>
-                                <div className="flex flex-wrap gap-2 mb-2">
-                                    <span className="px-3 py-1 bg-red-100 text-red-700 font-bold text-[10px] rounded-full flex items-center gap-1">Penicillin <button><span className="material-symbols-outlined text-[12px]">close</span></button></span>
-                                    <span className="px-3 py-1 bg-red-100 text-red-700 font-bold text-[10px] rounded-full flex items-center gap-1">Peanuts <button><span className="material-symbols-outlined text-[12px]">close</span></button></span>
-                                    <button className="px-3 py-1 bg-slate-50 border border-slate-200 text-blue-600 font-bold text-[10px] rounded-full hover:bg-slate-100 transition-colors flex items-center gap-1"><span className="material-symbols-outlined text-[12px]">add</span> Add Allergy</button>
-                                </div>
+                                <textarea rows="2" defaultValue={user?.allergies || ''} placeholder="e.g. Penicillin, Peanuts" className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-semibold focus:ring-red-500 focus:border-red-500"></textarea>
                             </div>
 
                             <div>
                                 <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1">Chronic Conditions</label>
-                                <textarea rows="3" defaultValue="Type 2 Diabetes, Mild Asthma" className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-semibold focus:ring-red-500 focus:border-red-500"></textarea>
+                                <textarea rows="3" defaultValue={user?.conditions || ''} placeholder="e.g. Type 2 Diabetes, Mild Asthma" className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-semibold focus:ring-red-500 focus:border-red-500"></textarea>
                             </div>
                         </div>
                     </div>

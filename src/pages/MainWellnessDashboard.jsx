@@ -1,16 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { patientProfileService } from '../services/api';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import HeaderActions from '../components/HeaderActions';
+import { useAuth } from '../context/AuthContext';
 
 
 const MainWellnessDashboard = () => {
-    const [profile, setProfile] = useState({ name: "Loading...", role: "Loading..." });
+    const { user, logout } = useAuth();
+    const navigate = useNavigate();
+    const [profile, setProfile] = useState({ name: user?.name || "Loading...", role: "Loading..." });
 
     useEffect(() => {
         const fetchProfile = async () => {
             const data = await patientProfileService.getProfile();
-            setProfile({ name: data.name, role: 'Pro Member' });
+            setProfile({ name: user?.name || data.name, role: 'Pro Member' });
         };
         fetchProfile();
     }, []);
@@ -67,7 +70,7 @@ const MainWellnessDashboard = () => {
                                     <Link to="/patient-profile-records" className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300">
                                         <span className="material-symbols-outlined text-xl">settings</span>
                                     </Link>
-                                    <Link title="Logout" to="/login" className="text-slate-400 hover:text-red-500">
+                                    <Link title="Logout" to="/" onClick={(e) => { e.preventDefault(); logout(); navigate('/'); }} className="text-slate-400 hover:text-red-500">
                                         <span className="material-symbols-outlined text-xl">logout</span>
                                     </Link>
                                 </div>
