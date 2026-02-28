@@ -1,8 +1,50 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import HeaderActions from '../components/HeaderActions';
 
 const MedicationManagerCalendar = () => {
+    const [activeTab, setActiveTab] = useState('Month');
+    const [monthOffset, setMonthOffset] = useState(0);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [newMed, setNewMed] = useState({ name: '', dosage: '', indication: '', schedule: '' });
+
+    const [prescriptions, setPrescriptions] = useState([
+        { id: 1, name: 'Lisinopril', dosage: '10mg', indication: 'Hypertension Management', schedule: '8:00 AM Daily', remaining: '12 / 30 pills', status: 'Refill Now', icon: 'pill' },
+        { id: 2, name: 'Metformin', dosage: '500mg', indication: 'Type 2 Diabetes Control', schedule: 'With Breakfast', remaining: '5 / 60 pills', status: 'Refill Urgent', icon: 'pill' },
+        { id: 3, name: 'Vitamin D3', dosage: '2000IU', indication: 'Immune Support', schedule: '1x Weekly (Sun)', remaining: '24 / 24 caps', status: 'Refill Not Ready', icon: 'medication_liquid' }
+    ]);
+
+    const months = ['August 2023', 'September 2023', 'October 2023', 'November 2023', 'December 2023'];
+    // Handle wrapping around the array safely
+    const currentMonthIndex = ((2 + monthOffset) % months.length + months.length) % months.length;
+    const currentMonth = months[currentMonthIndex];
+
+    const handleAddMedication = (e) => {
+        e.preventDefault();
+        if (!newMed.name) return;
+        const med = {
+            id: Date.now(),
+            name: newMed.name,
+            dosage: newMed.dosage || 'N/A',
+            indication: newMed.indication || 'General',
+            schedule: newMed.schedule || 'Daily',
+            remaining: '30 / 30 pills',
+            status: 'Refill Not Ready',
+            icon: 'pill'
+        };
+        setPrescriptions([med, ...prescriptions]);
+        setIsModalOpen(false);
+        setNewMed({ name: '', dosage: '', indication: '', schedule: '' });
+    };
+
+    const handleRefill = (id) => {
+        setPrescriptions(prescriptions.map(p => {
+            if (p.id === id && p.status !== 'Refill Not Ready') {
+                return { ...p, remaining: '30 / 30 pills', status: 'Refill Not Ready' };
+            }
+            return p;
+        }));
+    };
     return (
         <>
             <div className="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen">
@@ -26,10 +68,10 @@ const MedicationManagerCalendar = () => {
                         </div>
                         <div className="flex flex-1 justify-end gap-8">
                             <div className="flex items-center gap-9">
-                                <a className="text-slate-600 dark:text-slate-300 text-sm font-medium hover:text-primary transition-colors" href="#">Dashboard</a>
-                                <a className="text-primary text-sm font-bold border-b-2 border-primary py-1" href="#">Medications</a>
-                                <a className="text-slate-600 dark:text-slate-300 text-sm font-medium hover:text-primary transition-colors" href="#">Symptoms</a>
-                                <a className="text-slate-600 dark:text-slate-300 text-sm font-medium hover:text-primary transition-colors" href="#">Health Records</a>
+                                <Link className="text-slate-600 dark:text-slate-300 text-sm font-medium hover:text-primary transition-colors" to="/dashboard">Dashboard</Link>
+                                <Link className="text-primary text-sm font-bold border-b-2 border-primary py-1" to="/medication-manager-calendar">Medications</Link>
+                                <Link className="text-slate-600 dark:text-slate-300 text-sm font-medium hover:text-primary transition-colors" to="/ai-symptom-checker-interface">Symptoms</Link>
+                                <Link className="text-slate-600 dark:text-slate-300 text-sm font-medium hover:text-primary transition-colors" to="/patient-profile-records">Health Records</Link>
                             </div>
                             <div className="flex gap-2">
                                 <HeaderActions />
@@ -43,7 +85,7 @@ const MedicationManagerCalendar = () => {
                                     <h1 className="text-slate-900 dark:text-white text-3xl font-black leading-tight tracking-tight">Medication Manager</h1>
                                     <p className="text-slate-500 dark:text-slate-400 text-lg">Adherence score: <span className="text-emerald-500 font-bold">95%</span> this month</p>
                                 </div>
-                                <button className="bg-primary hover:bg-primary/90 text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 transition-all shadow-lg shadow-primary/20">
+                                <button onClick={() => setIsModalOpen(true)} className="bg-primary hover:bg-primary/90 text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 transition-all shadow-lg shadow-primary/20">
                                     <span className="material-symbols-outlined">add</span>
                                     Add New Medication
                                 </button>
@@ -51,20 +93,26 @@ const MedicationManagerCalendar = () => {
                             <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6">
                                 <div className="flex items-center justify-between mb-8">
                                     <div className="flex items-center gap-4">
-                                        <h2 className="text-xl font-bold dark:text-white">October 2023</h2>
+                                        <h2 className="text-xl font-bold dark:text-white">{currentMonth}</h2>
                                         <div className="flex gap-1">
-                                            <button className="p-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400">
+                                            <button onClick={() => setMonthOffset(p => p - 1)} className="p-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
                                                 <span className="material-symbols-outlined">chevron_left</span>
                                             </button>
-                                            <button className="p-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400">
+                                            <button onClick={() => setMonthOffset(p => p + 1)} className="p-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
                                                 <span className="material-symbols-outlined">chevron_right</span>
                                             </button>
                                         </div>
                                     </div>
                                     <div className="flex items-center gap-2 p-1 bg-slate-100 dark:bg-slate-800 rounded-xl">
-                                        <button className="px-4 py-1.5 rounded-lg bg-white dark:bg-slate-700 shadow-sm font-medium text-sm">Month</button>
-                                        <button className="px-4 py-1.5 rounded-lg text-slate-500 dark:text-slate-400 font-medium text-sm">Week</button>
-                                        <button className="px-4 py-1.5 rounded-lg text-slate-500 dark:text-slate-400 font-medium text-sm">Day</button>
+                                        {['Month', 'Week', 'Day'].map(tab => (
+                                            <button
+                                                key={tab}
+                                                onClick={() => setActiveTab(tab)}
+                                                className={`px-4 py-1.5 rounded-lg shadow-sm font-medium text-sm transition-colors ${activeTab === tab ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'}`}
+                                            >
+                                                {tab}
+                                            </button>
+                                        ))}
                                     </div>
                                 </div>
                                 <div className="grid grid-cols-7 gap-px bg-slate-200 dark:bg-slate-800 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden">
@@ -159,96 +207,49 @@ const MedicationManagerCalendar = () => {
                             <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 flex flex-col h-full">
                                 <div className="flex items-center justify-between mb-6">
                                     <h3 className="text-xl font-bold">Current Prescriptions</h3>
-                                    <span className="bg-slate-100 dark:bg-slate-800 px-3 py-1 rounded-full text-xs font-bold">4 Active</span>
+                                    <span className="bg-slate-100 dark:bg-slate-800 px-3 py-1 rounded-full text-xs font-bold">{prescriptions.length} Active</span>
                                 </div>
                                 <div className="space-y-4 flex-1 overflow-y-auto pr-2">
-                                    <div className="group bg-slate-50 dark:bg-slate-800/50 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 hover:border-primary transition-all">
-                                        <div className="flex gap-4">
-                                            <div className="size-16 rounded-xl bg-white dark:bg-slate-700 flex items-center justify-center p-2 border border-slate-100 dark:border-slate-600 overflow-hidden">
-                                                <div className="w-full h-full bg-slate-200 dark:bg-slate-600 rounded-lg flex items-center justify-center">
-                                                    <span className="material-symbols-outlined text-slate-400">pill</span>
+                                    {prescriptions.map((med) => (
+                                        <div key={med.id} className="group bg-slate-50 dark:bg-slate-800/50 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 hover:border-primary transition-all">
+                                            <div className="flex gap-4">
+                                                <div className="size-16 rounded-xl bg-white dark:bg-slate-700 flex items-center justify-center p-2 border border-slate-100 dark:border-slate-600 overflow-hidden">
+                                                    <div className="w-full h-full bg-slate-200 dark:bg-slate-600 rounded-lg flex items-center justify-center">
+                                                        <span className="material-symbols-outlined text-slate-400">{med.icon}</span>
+                                                    </div>
+                                                </div>
+                                                <div className="flex-1">
+                                                    <div className="flex justify-between items-start">
+                                                        <h4 className="font-bold text-slate-900 dark:text-white">{med.name}</h4>
+                                                        <span className="text-primary font-bold text-sm">{med.dosage}</span>
+                                                    </div>
+                                                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{med.indication}</p>
+                                                    <div className="mt-3 flex items-center gap-2">
+                                                        <span className="material-symbols-outlined text-xs text-slate-400">schedule</span>
+                                                        <span className="text-xs font-medium">{med.schedule}</span>
+                                                    </div>
                                                 </div>
                                             </div>
-                                            <div className="flex-1">
-                                                <div className="flex justify-between items-start">
-                                                    <h4 className="font-bold text-slate-900 dark:text-white">Lisinopril</h4>
-                                                    <span className="text-primary font-bold text-sm">10mg</span>
+                                            <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-700 flex items-center justify-between">
+                                                <div className="flex flex-col">
+                                                    <span className="text-[10px] text-slate-400 uppercase font-bold tracking-tighter">Remaining</span>
+                                                    <span className="text-sm font-bold text-slate-900 dark:text-white">{med.remaining}</span>
                                                 </div>
-                                                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Hypertension Management</p>
-                                                <div className="mt-3 flex items-center gap-2">
-                                                    <span className="material-symbols-outlined text-xs text-slate-400">schedule</span>
-                                                    <span className="text-xs font-medium">8:00 AM Daily</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-700 flex items-center justify-between">
-                                            <div className="flex flex-col">
-                                                <span className="text-[10px] text-slate-400 uppercase font-bold tracking-tighter">Remaining</span>
-                                                <span className="text-sm font-bold text-slate-900 dark:text-white">12 / 30 pills</span>
-                                            </div>
-                                            <button className="bg-primary/10 hover:bg-primary/20 text-primary text-xs font-bold px-4 py-2 rounded-lg transition-colors">
-                                                Refill Now
-                                            </button>
-                                        </div>
-                                    </div>
-                                    <div className="group bg-slate-50 dark:bg-slate-800/50 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 hover:border-primary transition-all">
-                                        <div className="flex gap-4">
-                                            <div className="size-16 rounded-xl bg-white dark:bg-slate-700 flex items-center justify-center p-2 border border-slate-100 dark:border-slate-600 overflow-hidden">
-                                                <div className="w-full h-full bg-slate-200 dark:bg-slate-600 rounded-lg flex items-center justify-center">
-                                                    <span className="material-symbols-outlined text-slate-400">pill</span>
-                                                </div>
-                                            </div>
-                                            <div className="flex-1">
-                                                <div className="flex justify-between items-start">
-                                                    <h4 className="font-bold text-slate-900 dark:text-white">Metformin</h4>
-                                                    <span className="text-primary font-bold text-sm">500mg</span>
-                                                </div>
-                                                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Type 2 Diabetes Control</p>
-                                                <div className="mt-3 flex items-center gap-2">
-                                                    <span className="material-symbols-outlined text-xs text-slate-400">schedule</span>
-                                                    <span className="text-xs font-medium">With Breakfast</span>
-                                                </div>
+                                                <button
+                                                    onClick={() => handleRefill(med.id)}
+                                                    disabled={med.status === 'Refill Not Ready'}
+                                                    className={`text-xs font-bold px-4 py-2 rounded-lg transition-colors shadow-sm ${med.status === 'Refill Urgent'
+                                                            ? 'bg-red-500 hover:bg-red-600 text-white shadow-red-500/20'
+                                                            : med.status === 'Refill Now'
+                                                                ? 'bg-primary/10 hover:bg-primary/20 text-primary'
+                                                                : 'bg-slate-200 dark:bg-slate-700 text-slate-500 dark:text-slate-400 cursor-not-allowed'
+                                                        }`}
+                                                >
+                                                    {med.status}
+                                                </button>
                                             </div>
                                         </div>
-                                        <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-700 flex items-center justify-between">
-                                            <div className="flex flex-col">
-                                                <span className="text-[10px] text-slate-400 uppercase font-bold tracking-tighter">Remaining</span>
-                                                <span className="text-sm font-bold text-slate-900 dark:text-white">5 / 60 pills</span>
-                                            </div>
-                                            <button className="bg-red-500 text-white text-xs font-bold px-4 py-2 rounded-lg transition-colors shadow-lg shadow-red-500/20">
-                                                Refill Urgent
-                                            </button>
-                                        </div>
-                                    </div>
-                                    <div className="group bg-slate-50 dark:bg-slate-800/50 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 hover:border-primary transition-all">
-                                        <div className="flex gap-4">
-                                            <div className="size-16 rounded-xl bg-white dark:bg-slate-700 flex items-center justify-center p-2 border border-slate-100 dark:border-slate-600 overflow-hidden">
-                                                <div className="w-full h-full bg-slate-200 dark:bg-slate-600 rounded-lg flex items-center justify-center">
-                                                    <span className="material-symbols-outlined text-slate-400">medication_liquid</span>
-                                                </div>
-                                            </div>
-                                            <div className="flex-1">
-                                                <div className="flex justify-between items-start">
-                                                    <h4 className="font-bold text-slate-900 dark:text-white">Vitamin D3</h4>
-                                                    <span className="text-primary font-bold text-sm">2000IU</span>
-                                                </div>
-                                                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Immune Support</p>
-                                                <div className="mt-3 flex items-center gap-2">
-                                                    <span className="material-symbols-outlined text-xs text-slate-400">schedule</span>
-                                                    <span className="text-xs font-medium">1x Weekly (Sun)</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-700 flex items-center justify-between">
-                                            <div className="flex flex-col">
-                                                <span className="text-[10px] text-slate-400 uppercase font-bold tracking-tighter">Remaining</span>
-                                                <span className="text-sm font-bold text-slate-900 dark:text-white">24 / 24 caps</span>
-                                            </div>
-                                            <button className="bg-slate-200 dark:bg-slate-700 text-slate-500 dark:text-slate-400 text-xs font-bold px-4 py-2 rounded-lg cursor-not-allowed">
-                                                Refill Not Ready
-                                            </button>
-                                        </div>
-                                    </div>
+                                    ))}
                                 </div>
                                 <div className="mt-6 p-4 bg-primary/5 rounded-2xl border border-primary/20">
                                     <div className="flex items-center gap-3">
@@ -263,6 +264,41 @@ const MedicationManagerCalendar = () => {
                     </main>
                 </div>
             </div>
+
+            {/* Add Medication Modal */}
+            {isModalOpen && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
+                    <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 w-full max-w-md shadow-2xl border border-slate-200 dark:border-slate-800 animate-fade-in-up transition-all">
+                        <div className="flex items-center justify-between mb-6">
+                            <h3 className="text-xl font-bold dark:text-white">Add Medication</h3>
+                            <button onClick={() => setIsModalOpen(false)} className="p-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 rounded-full transition-colors flex items-center justify-center">
+                                <span className="material-symbols-outlined text-[20px] dark:text-white">close</span>
+                            </button>
+                        </div>
+                        <form onSubmit={handleAddMedication} className="flex flex-col gap-4">
+                            <div>
+                                <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">Medication Name</label>
+                                <input autoFocus required value={newMed.name} onChange={e => setNewMed({ ...newMed, name: e.target.value })} type="text" className="w-full bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none" placeholder="e.g. Amoxicillin" />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">Dosage</label>
+                                <input value={newMed.dosage} onChange={e => setNewMed({ ...newMed, dosage: e.target.value })} type="text" className="w-full bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none" placeholder="e.g. 250mg" />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">Schedule</label>
+                                <input value={newMed.schedule} onChange={e => setNewMed({ ...newMed, schedule: e.target.value })} type="text" className="w-full bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none" placeholder="e.g. Twice Daily" />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">Indication (Optional)</label>
+                                <input value={newMed.indication} onChange={e => setNewMed({ ...newMed, indication: e.target.value })} type="text" className="w-full bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none" placeholder="e.g. Infection" />
+                            </div>
+                            <button type="submit" className="mt-4 w-full bg-primary hover:bg-primary/90 text-white font-bold py-3.5 rounded-xl transition-colors shadow-lg shadow-primary/20">
+                                Save Medication
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            )}
         </>
     );
 };

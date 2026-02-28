@@ -1,16 +1,103 @@
-# React + Vite
+# Pocket Doctor AI Healthcare Platform
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+![Pocket Doctor Home Page](C:\\Users\\SOHAM\\.gemini\\antigravity\\brain\\7b0f27dc-3f1b-415c-a90d-9f89a8c9279f\\pocket_doctor_homepage_1772211333481.png)
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Overview
 
-## React Compiler
+Pocket Doctor is a **premium‑grade, modern web application** that serves as a comprehensive health‑wellness hub. It combines a sleek glass‑morphism UI, dark mode, and AI‑powered features such as:
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- Symptom checking (Gemini/OpenAI powered chat interface)
+- X‑ray analysis
+- Health reports & analytics
+- Medication management calendar
+- Secure patient records
 
-## Expanding the ESLint configuration
+All data is encrypted and HIPAA‑compliant, with optional integration to Gemini/OpenAI models for AI insights.
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+---
+
+## Features
+
+- **Responsive Dashboard** – Central hub with navigation, quick actions, and health metric cards.
+- **Interactive Analytics** – Filterable visualizations, share & PDF export.
+- **Medication Manager** – Calendar view, add‑medication modal, reminders.
+- **AI Tools** – Symptom checker chatbot and X‑ray analysis.
+- **Dark Mode & Glass‑morphism** – Premium visual experience with smooth micro‑interactions.
+- **Accessibility** – Semantic HTML, ARIA labels, keyboard navigation, high‑contrast mode.
+
+---
+
+## Tech Stack
+
+| Layer | Technology |
+|-------|------------|
+| Frontend | React 18 (Vite), Tailwind‑CSS, React Router, Zustand/Context (future) |
+| Backend (planned) | FastAPI (Python), PostgreSQL (or SQLite for dev), JWT auth |
+| AI Integration | Gemini / OpenAI APIs (via secure env vars) |
+| Testing | React Testing Library, Jest, Pytest |
+
+---
+
+## Project Structure
+
+```text
+PocketDoctor/
+├─ public/                 # static assets
+├─ src/
+│   ├─ assets/            # images, icons
+│   ├─ components/        # reusable UI components
+│   ├─ pages/             # page‑level components (Landing, Dashboard, etc.)
+│   ├─ services/          # API client (api.js)
+│   ├─ App.jsx
+│   └─ main.jsx
+├─ convert.py             # utility script (currently with lint warnings)
+├─ README.md              # ← this file
+├─ package.json
+└─ vite.config.js
+```
+
+---
+
+## Setup & Development
+
+1. **Clone the repository**
+   ```bash
+   git clone <repo-url>
+   cd pocketdoctordiversion
+   ```
+2. **Install frontend dependencies**
+   ```bash
+   npm install
+   npm run dev   # starts Vite dev server at http://localhost:5173
+   ```
+3. **(Optional) Backend setup**
+   ```bash
+   python -m venv .venv
+   .\\.venv\\Scripts\\activate   # Windows
+   pip install -r requirements.txt
+   uvicorn app.main:app --reload
+   ```
+4. **Testing**
+   - UI: `npm test`
+   - API: `pytest`
+
+---
+
+## Contributing
+
+- Follow the existing code style (Prettier + ESLint).
+- Keep UI components accessible and responsive.
+- Add unit tests for new features.
+- Update this README when major changes are made.
+
+---
+
+## License
+
+MIT License – see the `LICENSE` file for details.
+
+---
+
+*Generated on 2026‑02‑27 by Antigravity (OpenAI‑powered coding assistant).*
