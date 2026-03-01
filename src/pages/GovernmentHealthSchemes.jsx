@@ -170,7 +170,7 @@ Return ONLY a valid JSON array of the 'id's of the applicable schemes. Do not wr
 Example: ["pm-jay", "jsy"]
 `;
 
-            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
+            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -239,7 +239,7 @@ Example: ["pm-jay", "jsy"]
 You are the "Scheme AI Agent" acting as a helpful guide for Government Health Schemes in India, specifically for ${selectedScheme ? selectedScheme.fullTitle || selectedScheme.title : "Indian Government Schemes"}. 
 You must ONLY answer questions related to health, wellness, the ArogyaSetu project, or government health schemes. If the query is unrelated, politely refuse to answer. Keep your response extremely short, professional, and directly address the user's query about eligibility, documents, or procedure. Use markdown for bolding important parts. The user said: "${userMsg}"`;
 
-            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
+            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -280,7 +280,7 @@ You must ONLY answer questions related to health, wellness, the ArogyaSetu proje
                         return;
                     }
                     const promptText = `You are the Scheme AI Agent for ArogyaSetu. You MUST answer in short and concise sentences. ONLY answer questions related to health, the ArogyaSetu project, or Indian Government Health Schemes. If the user asks anything else, firmly refuse to answer. The user asks: "${query}".`;
-                    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
+                    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ contents: [{ parts: [{ text: promptText }] }] })

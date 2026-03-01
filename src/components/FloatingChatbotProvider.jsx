@@ -120,13 +120,15 @@ const FloatingChatbotProvider = ({ children }) => {
 
             const prompt = `You are the ArogyaSetu AI Health Assistant. You must keep your answers extremely short and concise. ONLY answer questions related to the ArogyaSetu project itself, health, wellness, first-aid, or medical symptoms. If the user asks any other questions unrelated to these topics, firmly but politely refuse to answer. Do not prescribe complex medications. Respond natively in ${languageName}. The user says: ${userMessage.content}`;
 
-            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
+            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
+                mode: 'cors',
                 body: JSON.stringify({
                     contents: [{
+                        role: 'user',
                         parts: [{ text: prompt }]
                     }]
                 })
@@ -151,12 +153,13 @@ const FloatingChatbotProvider = ({ children }) => {
 
         } catch (error) {
             console.error("Gemini AI integration error:", error);
-            const errorResponse = {
+            // Provide a fallback mock response so the UI remains functional
+            const mockResponse = {
                 role: 'ai',
-                content: "I'm currently unable to connect to the AI network. Make sure your Gemini API key is valid in the .env file.",
+                content: "Sorry, I couldn't reach the Gemini service. Here's a quick tip: stay hydrated and rest if you feel unwell.",
                 timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
             };
-            setMessages(prev => [...prev, errorResponse]);
+            setMessages(prev => [...prev, mockResponse]);
         } finally {
             setIsTyping(false);
         }
