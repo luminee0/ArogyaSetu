@@ -44,7 +44,7 @@ CRITICAL RULE 2: If the image IS a human chest X-ray, set "isValid" to true. The
 
 CRITICAL RULE 3: If you detect pneumonia, estimate the bounding box of the primarily affected area using percentages relative to the image size (e.g. top: "30%", left: "20%", width: "40%", height: "35%"). Provide this in the "boundingBox" object. If NORMAL, you can omit the boundingBox or set it to null.`;
 
-                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({

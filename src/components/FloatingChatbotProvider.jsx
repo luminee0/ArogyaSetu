@@ -120,7 +120,7 @@ const FloatingChatbotProvider = ({ children }) => {
 
             const prompt = `You are the ArogyaSetu AI Health Assistant. You must keep your answers extremely short and concise. ONLY answer questions related to the ArogyaSetu project itself, health, wellness, first-aid, or medical symptoms. If the user asks any other questions unrelated to these topics, firmly but politely refuse to answer. Do not prescribe complex medications. Respond natively in ${languageName}. The user says: ${userMessage.content}`;
 
-            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
