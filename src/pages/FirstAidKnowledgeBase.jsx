@@ -2,6 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import TopHeader from '../components/TopHeader';
 import Footer from '../components/Footer';
+import { supabase } from '../supabaseClient';
 
 const specialtiesList = [
     { name: "General Physician", icon: "stethoscope" },
@@ -45,13 +46,13 @@ const DoctorListView = ({ onSelectDoctor }) => {
     useEffect(() => {
         const fetchDoctors = async () => {
             try {
-                const response = await fetch('http://localhost:5000/doctors');
-                if (response.ok) {
-                    const data = await response.json();
+                const { data, error } = await supabase.from('doctors').select('*');
+                if (error) throw error;
+                if (data) {
                     setDoctorsMock(data);
                 }
             } catch (error) {
-                console.error("Failed to fetch doctors:", error);
+                console.error("Failed to fetch doctors from Supabase:", error);
             }
         };
         fetchDoctors();
@@ -297,27 +298,23 @@ const DoctorDetailView = ({ doctor, onBack }) => {
 
         try {
             const bookingData = {
-                doctorId: doctor.id,
-                doctorName: doctor.name,
+                doctor_id: doctor.id,
+                doctor_name: doctor.name,
                 day: selectedDay,
                 slot: selectedSlot,
                 fee: doctor.fee
             };
 
-            const response = await fetch('http://localhost:5000/bookings', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(bookingData),
-            });
+            const { error } = await supabase.from('bookings').insert([bookingData]);
 
-            if (response.ok) {
+            if (!error) {
                 alert(`Booking Confirmed for ${doctor.name} on day ${selectedDay} at ${selectedSlot}!`);
                 onBack();
             } else {
-                alert('Booking failed. Please try again.');
+                throw error;
             }
         } catch (error) {
-            console.error(error);
+            console.error("Supabase Booking Error:", error);
             alert('An error occurred. Booking failed.');
         }
     };
