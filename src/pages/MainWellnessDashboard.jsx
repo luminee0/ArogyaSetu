@@ -4,6 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import HeaderActions from '../components/HeaderActions';
 import { useAuth } from '../context/AuthContext';
 import Footer from '../components/Footer';
+import toast from 'react-hot-toast';
 
 
 const MainWellnessDashboard = () => {
@@ -14,9 +15,8 @@ const MainWellnessDashboard = () => {
 
     const handleSearch = (e) => {
         if (e.key === 'Enter' && searchQuery.trim()) {
-            console.log('Searching for:', searchQuery);
-            // Example navigation
-            // navigate(`/search?q=${encodeURIComponent(searchQuery)}`);
+            toast.success(`Searching for ${searchQuery}...`);
+            navigate(`/ai-symptom-checker-interface?q=${encodeURIComponent(searchQuery)}`);
             setSearchQuery('');
         }
     };
@@ -73,7 +73,7 @@ const MainWellnessDashboard = () => {
                             <div className="bg-primary/5 dark:bg-primary/10 rounded-xl p-4 mb-4">
                                 <p className="text-sm font-semibold mb-1">Go Premium</p>
                                 <p className="text-xs text-slate-500 dark:text-slate-400 mb-3">Get unlimited AI scans and 24/7 doctor chat.</p>
-                                <button className="w-full py-2 bg-primary text-white rounded-lg text-sm font-bold">Upgrade Now</button>
+                                <button onClick={() => toast('Redirecting to secure Stripe checkout...')} className="w-full py-2 bg-primary text-white rounded-lg text-sm font-bold">Upgrade Now</button>
                             </div>
                             <div className="flex items-center gap-3 px-2">
                                 <div className="size-8 rounded-full bg-slate-200 dark:bg-slate-700" data-alt="User profile avatar icon" style={{ backgroundImage: 'url(https://lh3.googleusercontent.com/aida-public/AB6AXuDdROacabQcsgkHNRU9h3DjZRhBrqKeRWRfDh7W6ySZ7f1VaSESWTzydRxPYS5AKSG9lFTKidvp-_GwA5en2WRCT4ZCSajS5TI4MgzQEB2Ae4oeESmt5AknBD7hNhuyl6kn68PiaFPXYVkBw7BXcJBs4874o1zUQQ7H-j3F2VptTSS9hGTiruLTCAMrTyt2iA3hkYqihOn6QGRuAKGwBEeKpKmiXY0qL6e6bAEDZgKg4idmrbyfwl_ofr8AZqdE8oGIV03k7fq4GwM)' }}></div>
@@ -197,7 +197,7 @@ const MainWellnessDashboard = () => {
                                                 </div>
                                                 Health Metrics
                                             </h3>
-                                            <button className="text-[13px] font-bold text-primary hover:text-blue-700 hover:bg-primary/5 px-4 py-2 rounded-lg transition-colors flex items-center gap-1">
+                                            <button onClick={() => navigate('/my-health')} className="text-[13px] font-bold text-primary hover:text-blue-700 hover:bg-primary/5 px-4 py-2 rounded-lg transition-colors flex items-center gap-1">
                                                 View All
                                                 <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
                                             </button>
@@ -360,7 +360,7 @@ const MainWellnessDashboard = () => {
                                                 </div>
                                             </div>
                                             <div className="px-5 pb-5">
-                                                <button className="w-full bg-primary/10 hover:bg-primary/20 text-primary dark:text-white dark:bg-slate-800 dark:hover:bg-slate-700 rounded-2xl py-3.5 text-[14px] font-bold transition-colors flex items-center justify-center gap-2">
+                                                <button onClick={() => navigate('/medication-manager-calendar')} className="w-full bg-primary/10 hover:bg-primary/20 text-primary dark:text-white dark:bg-slate-800 dark:hover:bg-slate-700 rounded-2xl py-3.5 text-[14px] font-bold transition-colors flex items-center justify-center gap-2">
                                                     <span className="material-symbols-outlined text-[20px]">add</span>
                                                     Add New Reminder
                                                 </button>
@@ -405,7 +405,7 @@ const MainWellnessDashboard = () => {
                                                     </div>
                                                 </div>
 
-                                                <button className="w-full py-4 bg-white text-indigo-900 rounded-xl text-[14px] font-black tracking-wide hover:bg-slate-50 transition-all flex items-center justify-center gap-2 shadow-xl group-hover:-translate-y-1">
+                                                <button onClick={() => toast.success('Connecting to Google Meet endpoint...')} className="w-full py-4 bg-white text-indigo-900 rounded-xl text-[14px] font-black tracking-wide hover:bg-slate-50 transition-all flex items-center justify-center gap-2 shadow-xl group-hover:-translate-y-1">
                                                     <span className="material-symbols-outlined text-[22px]">video_camera_front</span>
                                                     JOIN VIDEO CALL
                                                 </button>

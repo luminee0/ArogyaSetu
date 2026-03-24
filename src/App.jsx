@@ -16,10 +16,12 @@ import MyHealthOverview from './pages/MyHealthOverview';
 import AiDermatologist from './pages/AiDermatologist';
 import GovernmentHealthSchemes from './pages/GovernmentHealthSchemes';
 import FloatingChatbotProvider from './components/FloatingChatbotProvider';
+import { Toaster } from 'react-hot-toast';
 
 const LayoutContainer = ({ children }) => {
   return (
     <div className="relative">
+      <Toaster position="bottom-center" />
       <FloatingChatbotProvider>
         {children}
       </FloatingChatbotProvider>

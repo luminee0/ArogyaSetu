@@ -5,6 +5,18 @@ import TopHeader from '../components/TopHeader';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
+import toast from 'react-hot-toast';
+import { supabase } from '../supabaseClient';
+
+// Function to calculate distance in kilometers between two lat/lng points
+const calculateDistance = (lat1, lon1, lat2, lon2) => {
+    const p = 0.017453292519943295;    // Math.PI / 180
+    const c = Math.cos;
+    const a = 0.5 - c((lat2 - lat1) * p)/2 + 
+            c(lat1 * p) * c(lat2 * p) * 
+            (1 - c((lon2 - lon1) * p))/2;
+    return 12742 * Math.asin(Math.sqrt(a)); // 2 * R; R = 6371 km
+};
 
 // Fix Leaflet icons
 delete L.Icon.Default.prototype._getIconUrl;
@@ -43,36 +55,36 @@ const createClinicIcon = (type) => {
 const CLINICS_DATA = [
     {
         id: 1,
-        name: "City General Hospital",
+        name: "Swasthya Health Clinic",
         type: "hospital",
         status: "OPEN",
-        phone: "(555) 012-3456",
-        distance: "0.8 miles",
+        phone: "+91 98765 43210",
+        distance: "0.8 km",
         info: "24/7 Emergency Care",
-        lat: 40.730610,
-        lng: -74.005242,
+        lat: 28.5273,
+        lng: 77.2167,
     },
     {
         id: 2,
-        name: "St. Mary's Urgent Care",
+        name: "Sanjeevani Urgent Care",
         type: "urgent",
         status: "BUSY",
-        phone: "(555) 098-7654",
-        distance: "2.4 miles",
+        phone: "+91 98765 12345",
+        distance: "2.4 km",
         info: "Closes at 10 PM",
-        lat: 40.741000,
-        lng: -73.985000,
+        lat: 28.5332,
+        lng: 77.2407,
     },
     {
         id: 3,
-        name: "CVS Pharmacy - 24hr",
+        name: "Apollo Pharmacy - 24hr",
         type: "pharmacy",
         status: "OPEN",
-        phone: "(555) 055-1212",
-        distance: "3.1 miles",
+        phone: "+91 98111 22233",
+        distance: "3.1 km",
         info: "Pharmacy & OTC",
-        lat: 40.712000,
-        lng: -73.990000,
+        lat: 28.5501,
+        lng: 77.2514,
     }
 ];
 
@@ -103,160 +115,125 @@ const EmergencyClinicLocator = () => {
     const [selectedClinic, setSelectedClinic] = useState(null);
     const [mapCenter, setMapCenter] = useState([40.725, -73.995]);
     const [userLocation, setUserLocation] = useState([40.725, -73.995]);
-    const [userLocationName, setUserLocationName] = useState("451 Health Way, NY (Fallback)");
+    const [userLocationName, setUserLocationName] = useState("Your Location");
     const [mapZoom, setMapZoom] = useState(13);
     const [guideIndex, setGuideIndex] = useState(0);
     const [liveClinics, setLiveClinics] = useState(CLINICS_DATA);
     const [isLoading, setIsLoading] = useState(true);
     const [apiMessage, setApiMessage] = useState("Fetching location...");
 
-    // Function to fetch real clinics via Overpass API (Free, No Key Needed)
-    const fetchRealClinics = async (lat, lng) => {
-        setIsLoading(true);
-        const radius = 25000; // Increased to 25km to reliably find clinics
-
-        try {
-            setApiMessage("Fetching live clinics nearby...");
-
-            // Query OpenStreetMap for hospitals and clinics via Overpass API
-            const query = `[out:json][timeout:25];(node["amenity"="hospital"](around:${radius},${lat},${lng});way["amenity"="hospital"](around:${radius},${lat},${lng});node["amenity"="clinic"](around:${radius},${lat},${lng});way["amenity"="clinic"](around:${radius},${lat},${lng});node["amenity"="pharmacy"](around:${radius},${lat},${lng});way["amenity"="pharmacy"](around:${radius},${lat},${lng}););out center;`;
-
-            // Try multiple mirrors if one fails
-            const mirrors = [
-                'https://overpass-api.de/api/interpreter',
-                'https://overpass.kumi.systems/api/interpreter',
-                'https://lz4.overpass-api.de/api/interpreter',
-                'https://overpass.openstreetmap.fr/api/interpreter'
-            ];
-
-            let res;
-            let lastError;
-
-            for (const mirror of mirrors) {
-                try {
-                    const controller = new AbortController();
-                    const timeoutId = setTimeout(() => controller.abort(), 8000); // 8 second timeout
-
-                    const url = `${mirror}?data=${encodeURIComponent(query)}`;
-                    res = await fetch(url, {
-                        method: "GET",
-                        signal: controller.signal,
-                        headers: {
-                            "Accept": "application/json"
-                        }
-                    });
-                    clearTimeout(timeoutId);
-                    if (res.ok) break;
-                } catch (err) {
-                    lastError = err;
-                    console.warn(`Mirror ${mirror} failed: ${err.message}`);
-                }
-            }
-
-            if (!res || !res.ok) {
-                throw lastError || new Error(`All Overpass mirrors failed`);
-            }
-            const data = await res.json();
-
-            if (data.elements && data.elements.length > 0) {
-                const mappedClinics = data.elements.map((element, i) => {
-                    const props = element.tags || {};
-                    let type = "hospital";
-                    if (props.amenity === "pharmacy") type = "pharmacy";
-                    else if (props.amenity === "doctors" || props.amenity === "clinic") type = "urgent";
-
-                    const elLat = element.center ? element.center.lat : element.lat;
-                    const elLon = element.center ? element.center.lon : element.lon;
-
-                    // Rough distance calculation in miles
-                    const R = 3958.8; // Radius of the Earth in miles
-                    const rlat1 = lat * (Math.PI / 180);
-                    const rlat2 = elLat * (Math.PI / 180);
-                    const difflat = rlat2 - rlat1;
-                    const difflon = (elLon - lng) * (Math.PI / 180);
-                    const a = Math.sin(difflat / 2) * Math.sin(difflat / 2) + Math.cos(rlat1) * Math.cos(rlat2) * Math.sin(difflon / 2) * Math.sin(difflon / 2);
-                    const distance = 2 * R * Math.asin(Math.sqrt(a));
-
-                    return {
-                        id: element.id,
-                        name: props.name || "Medical Facility",
-                        type: type,
-                        status: "OPEN",
-                        phone: props.phone || props['contact:phone'] || "Unlisted",
-                        distance: distance.toFixed(1) + " miles",
-                        info: props['healthcare:speciality'] || props.dispensing || props.amenity || "General Care",
-                        lat: elLat,
-                        lng: elLon,
-                    };
-                });
-
-                // Sort by nearest distance first
-                mappedClinics.sort((a, b) => parseFloat(a.distance) - parseFloat(b.distance));
-
-                // Prefer named clinics, but fallback to unnamed if necessary to get 3
-                let finalClinics = mappedClinics.filter(c => c.name !== "Medical Facility");
-                if (finalClinics.length < 3) {
-                    finalClinics = mappedClinics; // Fallback to all including unnamed
-                }
-
-                // Ensure only max 3 nearest items are shown
-                setLiveClinics(finalClinics.slice(0, 3));
-                setApiMessage(""); // Clear message if successful
-            } else {
-                setLiveClinics([]);
-                setApiMessage("No healthcare facilities found nearby.");
-            }
-        } catch (error) {
-            console.error("Overpass API Error", error);
-            setApiMessage("Failed to fetch live clinics. Reverting to demo data.");
-            setLiveClinics(CLINICS_DATA);
-        } finally {
-            setIsLoading(false);
+    const handleFindNearMe = () => {
+        if (!navigator.geolocation) {
+            toast.error("Geolocation is not supported by your browser");
+            return;
         }
+
+        setIsLoading(true);
+        toast.loading("Locating near you...", { id: "geo-toast" });
+
+        navigator.geolocation.getCurrentPosition(
+            async (position) => {
+                const lat = position.coords.latitude;
+                const lng = position.coords.longitude;
+                setUserLocation([lat, lng]);
+                setMapCenter([lat, lng]);
+                setMapZoom(13);
+                setSelectedClinic(null);
+
+                try {
+                    const geoResponse = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=10`);
+                    const geoData = await geoResponse.json();
+                    const city = geoData?.address?.city || geoData?.address?.town || geoData?.address?.county || geoData?.name || "Your Area";
+                    if (city) setUserLocationName(city + " (Live)");
+                } catch(e) { 
+                    setUserLocationName("Your Live Location");
+                }
+
+                // Overpass API fetching EXACTLY identical to the nearby doctors method
+                try {
+                    setApiMessage("Fetching live clinics nearby...");
+                    // Use exact query syntax from doctors page (out body 25)
+                    const query = `[out:json];(node["amenity"="clinic"](around:7000, ${lat}, ${lng});node["amenity"="hospital"](around:7000, ${lat}, ${lng});node["amenity"="pharmacy"](around:7000, ${lat}, ${lng}););out body 25;`;
+
+                    const response = await fetch("https://overpass-api.de/api/interpreter", {
+                        method: "POST",
+                        body: query
+                    });
+                    
+                    const data = await response.json();
+
+                    const realClinics = data.elements
+                        .filter(el => el.tags && (el.tags.name || el.tags.amenity))
+                        .map((el, i) => {
+                            const nodeLat = el.lat;
+                            const nodeLon = el.lon;
+                            const distance = calculateDistance(lat, lng, nodeLat, nodeLon);
+                            
+                            let type = "hospital";
+                            if (el.tags.amenity === "pharmacy") type = "pharmacy";
+                            else if (el.tags.amenity === "clinic") type = "urgent";
+
+                            return {
+                                id: 'real_' + (el.id || i),
+                                name: el.tags.name || `Local ${type.charAt(0).toUpperCase() + type.slice(1)}`,
+                                type: type,
+                                status: "OPEN",
+                                phone: el.tags.phone || el.tags['contact:phone'] || "Contact Unlisted",
+                                distance: distance.toFixed(1) + " km",
+                                info: el.tags['healthcare:speciality'] || el.tags.dispensing || (type === "pharmacy" ? "Pharmacy" : "Clinic/Hospital"),
+                                lat: nodeLat,
+                                lng: nodeLon,
+                                rawDistance: distance
+                            };
+                        }).sort((a, b) => a.rawDistance - b.rawDistance);
+
+                    if (realClinics.length > 0) {
+                        setLiveClinics(realClinics);
+                        setIsLoading(false);
+                        setApiMessage("");
+                        toast.success(`Found ${realClinics.length} real healthcare providers near you!`, { id: "geo-toast" });
+                        return;
+                    } else {
+                        throw new Error("No items found in specific grid");
+                    }
+                } catch (e) {
+                    console.warn("Real clinics API error, doing local sort exactly like doctors:", e);
+                    
+                    // Fallback to sorting mocked items if OSM has no data in that specific grid
+                    const sortedClinics = [...liveClinics].map(clinic => {
+                        const distance = clinic.lat && clinic.lng ? calculateDistance(lat, lng, clinic.lat, clinic.lng) : Infinity;
+                        return { ...clinic, distance: distance.toFixed(1) + " km", rawDistance: distance };
+                    }).sort((a, b) => a.rawDistance - b.rawDistance);
+
+                    setLiveClinics(sortedClinics);
+                    setIsLoading(false);
+                    setApiMessage("");
+                    toast.error("No real clinics mapped nearby. Showing default locations instead.", { id: "geo-toast", duration: 4000 });
+                }
+            },
+            (error) => {
+                setIsLoading(false);
+                toast.error("Unable to access GPS location.", { id: "geo-toast" });
+            }
+        );
     };
 
-    // Attempt Geolocation on mount with IP fallback
+    // Load data from Supabase/Mock on mount (Method used exactly in doctors page)
     useEffect(() => {
-        const fetchIPLocation = async () => {
+        const fetchClinics = async () => {
             try {
-                setApiMessage("Checking network location...");
-                const res = await fetch("https://get.geojs.io/v1/ip/geo.json");
-                const data = await res.json();
-                if (data.latitude && data.longitude) {
-                    const lat = parseFloat(data.latitude);
-                    const lng = parseFloat(data.longitude);
-                    setUserLocation([lat, lng]);
-                    setMapCenter([lat, lng]);
-                    setUserLocationName(`${data.city}, ${data.region} (Network)`);
-                    fetchRealClinics(lat, lng);
-                } else {
-                    throw new Error("Invalid IP Data");
+                const { data, error } = await supabase.from('clinics').select('*');
+                if (error) throw error;
+                if (data && data.length > 0) {
+                    setLiveClinics(data);
                 }
-            } catch (err) {
-                console.warn("IP Geolocation failed. Using default.");
-                fetchRealClinics(mapCenter[0], mapCenter[1]);
+            } catch (error) {
+                console.warn("Using local mock clinics (Supabase fetch bypassed or failed)");
             }
+            setIsLoading(false);
+            setApiMessage("");
         };
-
-        if ("geolocation" in navigator) {
-            navigator.geolocation.getCurrentPosition(
-                (position) => {
-                    const lat = position.coords.latitude;
-                    const lng = position.coords.longitude;
-                    setUserLocation([lat, lng]);
-                    setMapCenter([lat, lng]);
-                    setUserLocationName("Your Live Location");
-                    fetchRealClinics(lat, lng);
-                },
-                (err) => {
-                    console.warn("Browser Geolocation blocked/failed:", err.message);
-                    fetchIPLocation(); // Fallback to IP 
-                },
-                { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
-            );
-        } else {
-            fetchIPLocation();
-        }
+        fetchClinics();
     }, []);
 
     // Filter clinics
@@ -452,6 +429,13 @@ const EmergencyClinicLocator = () => {
                         {/* Map UI Controls Overlays */}
                         {/* We use Leaflet without default controls, so we add custom overlay controls here */}
                         <div className="absolute top-6 right-6 flex flex-col gap-3 z-[400] pointer-events-none">
+                            <button
+                                onClick={handleFindNearMe}
+                                className="p-3 mb-2 rounded-xl shadow-2xl shadow-slate-900/20 bg-blue-600 text-white hover:bg-blue-700 transition-colors pointer-events-auto flex items-center justify-center gap-2 group">
+                                <span className="material-symbols-outlined group-hover:animate-spin">location_searching</span>
+                                <span className="text-sm font-bold pr-1">Find Near Me</span>
+                            </button>
+
                             <div className="flex flex-col rounded-xl overflow-hidden shadow-2xl shadow-slate-900/20 bg-white/90 dark:bg-slate-800/90 backdrop-blur-md border border-slate-200/50 dark:border-slate-700/50 pointer-events-auto">
                                 <button className="p-3 hover:bg-slate-100 dark:hover:bg-slate-700 border-b border-slate-200 dark:border-slate-700 transition-colors"
                                     onClick={() => setMapZoom(z => Math.min(z + 1, 18))}>
